@@ -17,7 +17,11 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+your understanding of how real-world recommendations work and what your version will prioritize.
+
+Explain your design in plain language:
+
+
 
 Some prompts to answer:
 
@@ -29,6 +33,31 @@ Some prompts to answer:
 
 You can include a simple diagram or bullet list if helpful.
 
+Understanding of real-world recommendations:
+  - Uses both collaborative (listeners with similar preferences' tastes) and content-based (song characteristics) data
+  - Uses behavioral data, both explicit and implicit indicators of song preference: likes/dislikes (explicit), pressing the skip button (implicit), how long you listened before stopping (implicit)
+  - Uses fancy machine learning algorithms for clustering song data of different listeners' together to recommend new songs based on other listeners' tastes (Matrix factorization, Deep Neural Networks)
+  - Uses discrete features about audio-track's qualities-- genre, mood of song, valence(quantitative metric for mood), beats per minute, etc. 
+    - Both subjective(danceability, mood, valence) and objective features(genre, beats per minute)
+    - Used for tracking qualities and context of listening to song (when, what activity are users doing while listening, etc.)
+
+My recommenders' System:
+  - Scoring at high-level: Initial plan-- match to user-customizable "ideal profile". FUTURE: Allow for multiple distinct profiles, song suggestions based on matching to any one of them(most closely similar)
+  - Content-based, collaboration-based, or hybrid: Initially, purely content-based
+  - Songs.csv features to use for scoring songs, which UserProfile and Song will be matched on: energy, valence, danceability, acousticness, mood
+  - Program flow at high-level: 
+    - Inputs: number of songs to recommend, songs-data file, user-profile
+    - Outputs: A list of songs
+    - Takes csv of songs, and for each song, scores it based on how far it deviates from the 
+    user-profile's preferences based on specific characteristics, and then ranks all of the songs in the data file and returns a list of only the top songs, the quantity is as-requested by the user
+    - Characteristics of songs used for scoring: energy(fast-paced, vs calm), genre, mood (chill vs aggressive vs bubbly), and acoustic-level (instruments that sound non-electronic(ex. synths, beeps and boops))
+     
+  Scoring rule and then ranking rule to select the most relevant songs
+
+  - Scoring rule: Weighted sum of differences, converted to match-score via formula (1/1+difference) with bonuses added to final match score. Differences-score calculated using energy and acoustic levels. The energy difference-score is 0.5 * abs(user_pref_energy - song_energy). Acousticness difference-score is 0.5 * weight, where weight is a decimal associated with a bin that the song is assigned based on its acoustic level and alignment with user-preference. Genre and mood are simple additive bonuses, where they provide a boost of 0.75 and 0.5 respectively to the match score if the exact match exists, but don't detract from the score if it doesn't. Genre provides marginally higher boost than mood, assuming we are creatures of habit and don't like large deviances from less flexible preferences like genre, initially.
+
+  - Ranking rule: Simply order the songs in descending order, based on their match-score, and select the top X songs (X is an input to the program).
+    
 ---
 
 ## Getting Started
@@ -141,6 +170,9 @@ Describe your scoring logic in plain language.
 Try to avoid code in this section, treat it like an explanation to a non programmer.
 
 ---
+
+
+
 
 ## 4. Data
 

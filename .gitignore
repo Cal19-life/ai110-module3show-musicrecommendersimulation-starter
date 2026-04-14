@@ -4,6 +4,7 @@ __pycache__/
 *.pyo
 
 # Virtual environments
+music_recommender
 .venv/
 env/
 venv/
