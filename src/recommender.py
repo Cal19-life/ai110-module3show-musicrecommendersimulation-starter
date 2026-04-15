@@ -95,49 +95,37 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     energy = float(song.get("energy", 0.0))
     acousticness = float(song.get("acousticness", 0.0))
 
-    # Agreed formula: 0.5 * absolute energy distance.
+    # Energy Distance Score: 0.5 * absolute energy distance.
     energy_term = 0.5 * abs(energy - target_energy)
 
-    # TODO: Adjust these acousticness thresholds to better match your desired bin boundaries.
-    # TODO: Current cutoffs are heuristic defaults (0.25, 0.5, 0.75) and should be calibrated.
-    # Agreed acoustic bin weights: best=0.0, closer-middle=0.45, farther-middle=0.55, worst=1.0.
-    if likes_acoustic:
-        if acousticness >= 0.75:
-            acoustic_bin_weight = 0.0
-            acoustic_label = "acoustic preference strongly aligned"
-        elif acousticness <= 0.25:
-            acoustic_bin_weight = 1.0
-            acoustic_label = "acoustic preference strongly misaligned"
-        elif acousticness >= 0.5:
-            acoustic_bin_weight = 0.45
-            acoustic_label = "acoustic preference moderately aligned"
-        else:
-            acoustic_bin_weight = 0.55
-            acoustic_label = "acoustic preference mildly misaligned"
+    # Acoustic bin weights: best=0.0, closer-middle=0.45, farther-middle=0.55, worst=1.0.
+    if (likes_acoustic and acousticness >= 0.75) or (not likes_acoustic and acousticness <= 0.25):
+        acoustic_bin_weight = 0.0
+        acoustic_label = "acoustic preference strongly aligned"
+    elif (likes_acoustic and acousticness <= 0.25) or (not likes_acoustic and acousticness >= 0.75):
+        acoustic_bin_weight = 1.0
+        acoustic_label = "acoustic preference strongly misaligned"
+    elif (likes_acoustic and acousticness >= 0.5) or (not likes_acoustic and acousticness < 0.5):
+        acoustic_bin_weight = 0.45
+        acoustic_label = "acoustic preference moderately aligned"
     else:
-        if acousticness <= 0.25:
-            acoustic_bin_weight = 0.0
-            acoustic_label = "acoustic preference strongly aligned"
-        elif acousticness >= 0.75:
-            acoustic_bin_weight = 1.0
-            acoustic_label = "acoustic preference strongly misaligned"
-        elif acousticness < 0.5:
-            acoustic_bin_weight = 0.45
-            acoustic_label = "acoustic preference moderately aligned"
-        else:
-            acoustic_bin_weight = 0.55
-            acoustic_label = "acoustic preference mildly misaligned"
+        acoustic_bin_weight = 0.55
+        acoustic_label = "acoustic preference mildly misaligned"
 
+    # Acoustic Difference Score
     acoustic_term = 0.5 * acoustic_bin_weight
 
+    # Total Distance Score, Conversion to Base Match Score
     total_distance = energy_term + acoustic_term
     base_match_score = 1.0 / (1.0 + total_distance)
 
+    # Genre and Mood Exact Match-- Additive bonuses to Base Match Score
     genre_bonus = 0.75 if song.get("genre", "") == favorite_genre else 0.0
     mood_bonus = 0.5 if song.get("mood", "") == favorite_mood else 0.0
 
     final_score = base_match_score + genre_bonus + mood_bonus
 
+    # Returning list of reasons behind match-score, for explainability
     reasons = [
         f"energy term={energy_term:.3f}",
         f"acoustic term={acoustic_term:.3f} ({acoustic_label})",
