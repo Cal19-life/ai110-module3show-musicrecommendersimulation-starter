@@ -87,6 +87,8 @@ def score_song(user_prefs: Dict, song: Dict) -> Tuple[float, List[str]]:
     Scores a single song against user preferences.
     Required by recommend_songs() and src/main.py
     """
+
+    # the .get() method has defaults so even if the user_prefs is malformed, this function will work and use those default vals 
     favorite_genre = user_prefs.get("favorite_genre", "")
     favorite_mood = user_prefs.get("favorite_mood", "")
     target_energy = float(user_prefs.get("target_energy", 0.5))
